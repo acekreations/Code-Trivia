@@ -1,0 +1,7 @@
+body {
+  background-image: url("../images/geometry.png");
+}
+
+#questionOptions li {
+  transition: all 0.5s;
+}

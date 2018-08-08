@@ -10,11 +10,11 @@ $(document).ready(function(){
       options: ["Cascading Style Selector", "Cascading Style Sheet", "Correct Style Syntax", "Cool Style System"],
       answer: 1
     },
-    "How does Java play a roll in JavaScript?" : {
+    "What role does Java play in JavaScript?" : {
       options: ["They are the same thing", "They can both be written in a .js file together", "Javascript is the cooler version of Java", "They aren't the same at all"],
       answer: 3
     },
-    "When using Bootstrap you should always.." : {
+    "When using Bootstrap you should always..." : {
       options: ["Give a shoutout to twitter", "Include CDN links to Bootstrap CSS and JS", "Forget that your using Bootstrap and write a bunch of CSS that Bootstrap already offers", "Build your own CSS grid system"],
       answer: 1
     },
@@ -27,20 +27,27 @@ $(document).ready(function(){
       answer: 1
     },
   };
-  var correctAnsers = 0;
+  var correctAnswers = 0;
   var incorrectAnswers = 0;
   var numQuestionsAnswered = 0;
-  var timeLeft = 30;
+  var timeLeft =30;
+  var currentQuestionNum = 0;
+  var numOfQuestions = Object.keys(questions).length;
+  var setCountdown;
 
   // FUNCTIONS
   // initialize game
   //   set correct, incorrect and guessed to zero
   //   call new question
   function initilizeGame() {
-    correctAnsers = 0;
+    correctAnswers = 0;
     incorrectAnswers = 0;
     numQuestionsAnswered = 0;
+    currentQuestionNum = 0;
     timeLeft = 30;
+    $("#gameResults").empty();
+    $("#startGameBtn").hide();
+    $("#countdownTimerContainer").show();
     newQuestion();
   }
 
@@ -51,16 +58,18 @@ $(document).ready(function(){
   //     incorrect answers++
   //     call out of time function
   function countdownTimer() {
-    var setCountdown = setIterator(countdownExec, 1000)
+    timeLeft = 30;
+    setCountdown = setInterval(countdownExec, 1000)
   }
 
   function countdownExec() {
-    timeLeft--;
     if (timeLeft === 0) {
+      $("#countdownTimer").text("0");
       outOfTime();
     }
     else {
       $("#countdownTimer").text(timeLeft);
+      timeLeft--;
     }
   }
 
@@ -71,10 +80,13 @@ $(document).ready(function(){
   //   setTimeOut
   //     call next question
   function outOfTime() {
-    var questionVal = $("#question").val();
-    var correctAnser = questions[questionVal].answer;
-    $("#questionOptions:nth-child(" + correctAnser++ + ")").addClass("bg-warning");
-    setTimeOut(newQuestion, 1000 * 2);
+    clearInterval(setCountdown);
+    var questionVal = $("#question").attr("value");
+    var displayCorrectAnswer = questions[questionVal].answer;
+    displayCorrectAnswer++;
+    $("#questionOptions button").addClass("disabled");
+    $("#questionOptions button:nth-child(" + displayCorrectAnswer + ")").removeClass("disabled").addClass("btn-warning");
+    setTimeout(newQuestion, 1000 * 3);
   }
 
   // new question
@@ -85,7 +97,23 @@ $(document).ready(function(){
   //   else
   //     load results
   function newQuestion() {
+    $("#questionOptions").empty();
+    if (currentQuestionNum < numOfQuestions) {
+      countdownTimer();
+      var newQuestionStr = Object.entries(questions)[currentQuestionNum];
+      $("#questionArea").html("<h2 id='question' class='display-4 mb-4' value='" + newQuestionStr[0] + "'>" + newQuestionStr[0] + "</h2>");
 
+      for (var i = 0; i < newQuestionStr[1].options.length; i++) {
+        $("#questionOptions").append("<button type='button' class='btn btn-primary text-left p-3' value='" + newQuestionStr[1].options[i] + "'><i class='far fa-dot-circle'></i> " + newQuestionStr[1].options[i] + "</button>")
+      }
+      currentQuestionNum++;
+    }
+    else {
+      $("#question, #questionOptions").empty();
+      $("#countdownTimerContainer").hide();
+      $("#startGameBtn").show();
+      $("#gameResults").html("<p>Correct Answers: " + correctAnswers + "</p><p>incorrect Answers: " + incorrectAnswers + "</p><p>Questions Answered: " + numQuestionsAnswered + " of " + numOfQuestions + "</p>");
+    }
   }
 
   // check answer
@@ -96,7 +124,25 @@ $(document).ready(function(){
   //     else
   //       incorrect answers++
   //       call new question
-  //
+  function checkAnswer(btnClicked) {
+    clearInterval(setCountdown);
+    numQuestionsAnswered++;
+
+    var answerClicked = btnClicked.attr("value");
+    console.log(answerClicked);
+    var questionAsked = $("#question").attr("value");
+    var answerArrayPos = questions[questionAsked].options.indexOf(answerClicked);
+    console.log(answerArrayPos);
+    if (answerArrayPos === questions[questionAsked].answer) {
+      correctAnswers++;
+      newQuestion();
+    }
+    else {
+      incorrectAnswers++
+      newQuestion();
+    }
+  }
+
   //
   // EXECUTION
   // start game button on click
@@ -107,7 +153,12 @@ $(document).ready(function(){
   //   get value of answer
   //   get value of question
   //   call check answer and pass value of answer and question
-
+  $("#questionOptions").on("click", "button", function(){
+    if (timeLeft !== 0) {
+      var btnClicked = $(this);
+      checkAnswer(btnClicked);
+    }
+  });
 
 
 })

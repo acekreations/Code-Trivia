@@ -1,10 +1,4 @@
 $(document).ready(function(){
-
-  // VARIABLES
-  // obj = questions, possible answers, correct answer
-  // var = correct answers
-  // var = incorrect answers
-  // var = questions guessed
   var questions = {
     "What does CSS stand for?" : {
       options: ["Cascading Style Selector", "Cascading Style Sheet", "Correct Style Syntax", "Cool Style System"],
@@ -30,15 +24,11 @@ $(document).ready(function(){
   var correctAnswers = 0;
   var incorrectAnswers = 0;
   var numQuestionsAnswered = 0;
-  var timeLeft =30;
+  var timeLeft = 30;
   var currentQuestionNum = 0;
   var numOfQuestions = Object.keys(questions).length;
   var setCountdown;
 
-  // FUNCTIONS
-  // initialize game
-  //   set correct, incorrect and guessed to zero
-  //   call new question
   function initilizeGame() {
     correctAnswers = 0;
     incorrectAnswers = 0;
@@ -51,12 +41,6 @@ $(document).ready(function(){
     newQuestion();
   }
 
-
-  // countdown timer
-  //   count down for 30 secs
-  //   if it hits zero
-  //     incorrect answers++
-  //     call out of time function
   function countdownTimer() {
     timeLeft = 30;
     setCountdown = setInterval(countdownExec, 1000)
@@ -73,29 +57,11 @@ $(document).ready(function(){
     }
   }
 
-  // out of time
-  //   get question value
-  //   retrieve correct answer
-  //   display correct answer by high lighting it and fading other answers
-  //   setTimeOut
-  //     call next question
   function outOfTime() {
     clearInterval(setCountdown);
-    var questionVal = $("#question").attr("value");
-    var displayCorrectAnswer = questions[questionVal].answer;
-    displayCorrectAnswer++;
-    $("#questionOptions button").addClass("disabled");
-    $("#questionOptions button:nth-child(" + displayCorrectAnswer + ")").removeClass("disabled").addClass("btn-warning");
-    setTimeout(newQuestion, 1000 * 3);
+    revealAnswer("warning");
   }
 
-  // new question
-  //   if more questions
-  //     pull next question (random?)
-  //     load new question to page
-  //     call countdown timer
-  //   else
-  //     load results
   function newQuestion() {
     $("#questionOptions").empty();
     if (currentQuestionNum < numOfQuestions) {
@@ -104,7 +70,7 @@ $(document).ready(function(){
       $("#questionArea").html("<h2 id='question' class='display-4 mb-4' value='" + newQuestionStr[0] + "'>" + newQuestionStr[0] + "</h2>");
 
       for (var i = 0; i < newQuestionStr[1].options.length; i++) {
-        $("#questionOptions").append("<button type='button' class='btn btn-primary text-left p-3' value='" + newQuestionStr[1].options[i] + "'><i class='far fa-dot-circle'></i> " + newQuestionStr[1].options[i] + "</button>")
+        $("#questionOptions").append("<button type='button' class='btn btn-primary text-left p-3' value=\"" + newQuestionStr[1].options[i] + "\"><i class='far fa-dot-circle'></i> " + newQuestionStr[1].options[i] + "</button>")
       }
       currentQuestionNum++;
     }
@@ -112,18 +78,22 @@ $(document).ready(function(){
       $("#question, #questionOptions").empty();
       $("#countdownTimerContainer").hide();
       $("#startGameBtn").show();
-      $("#gameResults").html("<p>Correct Answers: " + correctAnswers + "</p><p>incorrect Answers: " + incorrectAnswers + "</p><p>Questions Answered: " + numQuestionsAnswered + " of " + numOfQuestions + "</p>");
+      if (correctAnswers >= 4) {var emoji = "<i class='far fa-smile fa-10x'></i>"};
+      if (correctAnswers === 3) {var emoji = "<i class='far fa-meh fa-10x'></i>"};
+      if (correctAnswers <= 2) {var emoji = "<i class='far fa-frown fa-10x'></i>"};
+      $("#gameResults").html("<div class='mb-4'>" + emoji + "</div><p><strong>Correct Answers:</strong> " + correctAnswers + "</p><p><strong>Incorrect Answers:</strong> " + incorrectAnswers + "</p><p><strong>Questions Answered:</strong> " + numQuestionsAnswered + " of " + numOfQuestions + "</p>");
     }
   }
 
-  // check answer
-  //   questions guessed++
-  //   check if correct
-  //       correct answers++
-  //       call new question
-  //     else
-  //       incorrect answers++
-  //       call new question
+  function revealAnswer(color) {
+    var questionVal = $("#question").attr("value");
+    var displayCorrectAnswer = questions[questionVal].answer;
+    displayCorrectAnswer++;
+    $("#questionOptions button").addClass("disabled");
+    $("#questionOptions button:nth-child(" + displayCorrectAnswer + ")").removeClass("disabled").addClass("btn-" + color);
+    setTimeout(newQuestion, 1000 * 3);
+  }
+
   function checkAnswer(btnClicked) {
     clearInterval(setCountdown);
     numQuestionsAnswered++;
@@ -132,33 +102,23 @@ $(document).ready(function(){
     console.log(answerClicked);
     var questionAsked = $("#question").attr("value");
     var answerArrayPos = questions[questionAsked].options.indexOf(answerClicked);
-    console.log(answerArrayPos);
+
     if (answerArrayPos === questions[questionAsked].answer) {
       correctAnswers++;
-      newQuestion();
+      revealAnswer("success");
     }
     else {
       incorrectAnswers++
-      newQuestion();
+      revealAnswer("danger");
     }
   }
 
-  //
-  // EXECUTION
-  // start game button on click
-  //   call initialize
   $("#startGameBtn").click(initilizeGame);
 
-  // answer button on click
-  //   get value of answer
-  //   get value of question
-  //   call check answer and pass value of answer and question
   $("#questionOptions").on("click", "button", function(){
     if (timeLeft !== 0) {
       var btnClicked = $(this);
       checkAnswer(btnClicked);
     }
   });
-
-
 })

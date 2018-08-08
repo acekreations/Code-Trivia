@@ -29,6 +29,7 @@ $(document).ready(function(){
   var numOfQuestions = Object.keys(questions).length;
   var setCountdown;
 
+  //reset variables and UI
   function initilizeGame() {
     correctAnswers = 0;
     incorrectAnswers = 0;
@@ -41,50 +42,65 @@ $(document).ready(function(){
     newQuestion();
   }
 
+  //initialize game timer
   function countdownTimer() {
+    //make sure time left is set properly
     timeLeft = 30;
     setCountdown = setInterval(countdownExec, 1000)
   }
 
+  //check if time has run out
   function countdownExec() {
     if (timeLeft === 0) {
+      //make sure clock in UI displays zero
       $("#countdownTimer").text("0");
       outOfTime();
     }
     else {
+      //update UI clock with remaining time
       $("#countdownTimer").text(timeLeft);
       timeLeft--;
     }
   }
 
+  //if user runs out of time clear timer and display correct answer
   function outOfTime() {
     clearInterval(setCountdown);
     revealAnswer("warning");
   }
 
+  //gets and displays new quetion
   function newQuestion() {
     $("#questionOptions").empty();
+    //checks if there are any questions left that the user has not seen
     if (currentQuestionNum < numOfQuestions) {
       countdownTimer();
+      //gets next question from the questions obj using currenctQuestionNum which keeps track of the position in the obj
       var newQuestionStr = Object.entries(questions)[currentQuestionNum];
+      //updates UI with new question
       $("#questionArea").html("<h2 id='question' class='display-4 mb-4' value='" + newQuestionStr[0] + "'>" + newQuestionStr[0] + "</h2>");
-
+      //loops through question options and displays them
       for (var i = 0; i < newQuestionStr[1].options.length; i++) {
         $("#questionOptions").append("<button type='button' class='btn btn-primary text-left p-3' value=\"" + newQuestionStr[1].options[i] + "\"><i class='far fa-dot-circle'></i> " + newQuestionStr[1].options[i] + "</button>")
       }
+      //increase position of question in the question obj
       currentQuestionNum++;
     }
+    //if there are no more questions
     else {
       $("#question, #questionOptions").empty();
       $("#countdownTimerContainer").hide();
       $("#startGameBtn").show();
+      //set the reaction emoji based on how well the user did
       if (correctAnswers >= 4) {var emoji = "<i class='far fa-smile fa-10x'></i>"};
       if (correctAnswers === 3) {var emoji = "<i class='far fa-meh fa-10x'></i>"};
       if (correctAnswers <= 2) {var emoji = "<i class='far fa-frown fa-10x'></i>"};
+      //display the results to the user
       $("#gameResults").html("<div class='mb-4'>" + emoji + "</div><p><strong>Correct Answers:</strong> " + correctAnswers + "</p><p><strong>Incorrect Answers:</strong> " + incorrectAnswers + "</p><p><strong>Questions Answered:</strong> " + numQuestionsAnswered + " of " + numOfQuestions + "</p>");
     }
   }
 
+  //highlight the correct answer, accepts any bootstrap alert color as arg
   function revealAnswer(color) {
     var questionVal = $("#question").attr("value");
     var displayCorrectAnswer = questions[questionVal].answer;
@@ -94,6 +110,7 @@ $(document).ready(function(){
     setTimeout(newQuestion, 1000 * 3);
   }
 
+  //checks if the users answer is correct, accepts var representing 'this' from the btn that was chosen by the user
   function checkAnswer(btnClicked) {
     clearInterval(setCountdown);
     numQuestionsAnswered++;
@@ -113,8 +130,10 @@ $(document).ready(function(){
     }
   }
 
+  //start the game when btn is clicked
   $("#startGameBtn").click(initilizeGame);
 
+  //initiate answer check when user selects an answer
   $("#questionOptions").on("click", "button", function(){
     if (timeLeft !== 0) {
       var btnClicked = $(this);
